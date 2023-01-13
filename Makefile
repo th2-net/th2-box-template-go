@@ -9,7 +9,7 @@ MODULE_DIR=$(MODULE_NAME)
 
 PROTOBUF_VERSION=v1.5.2
 
-default: prepare-main-module
+default: build
 
 configure-go:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -33,8 +33,9 @@ prepare-grpc-module: clean-grpc-module
 
 genrate-grpc-files: prepare-grpc-module configure-go
 	$(eval $@_PROTO_DIR := $(shell go list -m -f '{{.Dir}}' $(TH2_GRPC_COMMON_URL))/$(SRC_MAIN_PROTO_DIR))
-	# apt install tree
-	# tree ../go
+	
+	find $($@_PROTO_DIR) -type f
+
 	protoc \
 		--go_out=$(MODULE_DIR) \
 		--go_opt=paths=source_relative \
@@ -57,3 +58,6 @@ prepare-main-module: clean-main-module genrate-grpc-files
 	go get -u -t github.com/golang/protobuf@$(PROTOBUF_VERSION) 
 
 	go work init ; go work use .
+
+build: prepare-main-module
+	go build -o main main.go
